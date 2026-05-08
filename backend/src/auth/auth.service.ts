@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import {
   Res,
+  Request,
   HttpException,
   HttpStatus,
   UnauthorizedException,
@@ -8,6 +9,7 @@ import {
 import { UsersService } from '../users/users.service';
 import type { Response } from 'express';
 import { JwtService } from '@nestjs/jwt';
+import { convertUsertoProfile } from './dto/userProfile.dto';
 const bcrypt = require('bcrypt');
 
 @Injectable()
@@ -78,6 +80,25 @@ export class AuthService {
         : res
             .status(HttpStatus.INTERNAL_SERVER_ERROR)
             .json({ message: 'Internal server error' });
+    }
+  }
+
+  async getProfile(@Request() req, @Res() res: Response) {
+    try {
+      const user = await this.usersService.findOne({ id: req.user.sub });
+      if (!user) {
+        throw new UnauthorizedException();
+      }
+      const userProfile = convertUsertoProfile(user);
+      res.status(HttpStatus.OK).json(userProfile);
+      return userProfile;
+    } catch (error) {
+      console.log(error);
+      error instanceof HttpException
+        ? res.status(error.getStatus()).json(error.getResponse())
+        : res
+            .status(HttpStatus.INTERNAL_SERVER_ERROR)
+            .json({ message: 'Internal Server Error' });
     }
   }
 }
