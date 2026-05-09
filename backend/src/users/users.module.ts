@@ -3,6 +3,6 @@ import { UsersService } from './users.service';
 
 @Module({
   providers: [UsersService],
-  exports: [UsersService], // tous les modules qui importent le UsersModule ont accès au UsersService
+  exports: [UsersService], // exporte seulement si un autre module en a besoin
 })
 export class UsersModule {}

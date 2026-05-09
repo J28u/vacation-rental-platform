@@ -1,104 +1,63 @@
 import { Injectable } from '@nestjs/common';
-import {
-  Res,
-  Request,
-  HttpException,
-  HttpStatus,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { UnauthorizedException, BadRequestException } from '@nestjs/common';
 import { UsersService } from '../users/users.service';
-import type { Response } from 'express';
 import { JwtService } from '@nestjs/jwt';
-import { convertUsertoProfile } from './dto/userProfile.dto';
+import { UserProfileDto } from './dto/user-profile.dto';
+import { AuthResponseDto } from './dto/auth-response.dto';
+import { User } from '../generated/prisma/client';
 const bcrypt = require('bcrypt');
 
 @Injectable()
 export class AuthService {
   constructor(
     private readonly usersService: UsersService,
-    private jwtService: JwtService,
+    private readonly jwtService: JwtService,
   ) {}
+
+  private convertUserToProfile(user: User): UserProfileDto {
+    return {
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      created_at: user.createdAt,
+      updated_at: user.updatedAt,
+    };
+  }
 
   async register(
     name: string | null,
     email: string,
     password: string,
-    @Res() res: Response,
-  ) {
-    try {
-      let user = await this.usersService.findOne({ email: email });
-      if (user) {
-        throw new HttpException('Email already exists', HttpStatus.BAD_REQUEST);
-      }
+  ): Promise<AuthResponseDto> {
+    const existing = await this.usersService.findOneByEmail(email);
+    if (existing) throw new BadRequestException('Email already exists');
 
-      const hash = await bcrypt.hash(password, 10);
-      user = await this.usersService.createUser({
-        name: name ? name : '',
-        email: email,
-        password: hash,
-      });
+    const hash = await bcrypt.hash(password, 10);
+    const user = await this.usersService.create({
+      name: name ?? '',
+      email: email,
+      password: hash,
+    });
 
-      if (user) {
-        const token = await this.jwtService.signAsync({ sub: user.id });
-        res.status(200).json({ token: token });
-        return { token: token };
-      } else {
-        throw new HttpException(
-          'Internal server error',
-          HttpStatus.INTERNAL_SERVER_ERROR,
-        );
-      }
-    } catch (error) {
-      console.log(error);
-      error instanceof HttpException
-        ? res.status(error.getStatus()).json(error.getResponse())
-        : res
-            .status(HttpStatus.INTERNAL_SERVER_ERROR)
-            .json({ message: 'Internal server error' });
-    }
+    const token = await this.jwtService.signAsync({ sub: user.id });
+    return { token };
   }
 
-  async login(email: string, password: string, @Res() res: Response) {
-    try {
-      const user = await this.usersService.findOne({ email: email });
-      if (!user) {
-        throw new UnauthorizedException('Invalid credentials');
-      }
+  async login(email: string, password: string): Promise<AuthResponseDto> {
+    const user = await this.usersService.findOneByEmail(email);
+    if (!user) throw new UnauthorizedException('Invalid credentials');
 
-      const valid = await bcrypt.compare(password, user.password);
-      if (!valid) {
-        throw new UnauthorizedException('Invalid credentials');
-      }
-      const token = await this.jwtService.signAsync({ sub: user.id });
+    const valid = await bcrypt.compare(password, user.password);
+    if (!valid) throw new UnauthorizedException('Invalid credentials');
 
-      res.status(201).json({ token: token });
-      return { token: token };
-    } catch (error) {
-      console.log(error);
-      error instanceof HttpException
-        ? res.status(error.getStatus()).json(error.getResponse())
-        : res
-            .status(HttpStatus.INTERNAL_SERVER_ERROR)
-            .json({ message: 'Internal server error' });
-    }
+    const token = await this.jwtService.signAsync({ sub: user.id });
+
+    return { token };
   }
 
-  async getProfile(@Request() req, @Res() res: Response) {
-    try {
-      const user = await this.usersService.findOne({ id: req.user.sub });
-      if (!user) {
-        throw new UnauthorizedException();
-      }
-      const userProfile = convertUsertoProfile(user);
-      res.status(HttpStatus.OK).json(userProfile);
-      return userProfile;
-    } catch (error) {
-      console.log(error);
-      error instanceof HttpException
-        ? res.status(error.getStatus()).json(error.getResponse())
-        : res
-            .status(HttpStatus.INTERNAL_SERVER_ERROR)
-            .json({ message: 'Internal Server Error' });
-    }
+  async getProfile(id: number): Promise<UserProfileDto> {
+    const user = await this.usersService.findOneById(id);
+    if (!user) throw new UnauthorizedException();
+    return this.convertUserToProfile(user);
   }
 }

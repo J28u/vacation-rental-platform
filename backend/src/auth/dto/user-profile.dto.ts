@@ -8,7 +8,7 @@ export class UserProfileDto {
   updated_at!: Date | null;
 }
 
-export function convertUsertoProfile(user: User): UserProfileDto {
+export function convertUserToProfile(user: User): UserProfileDto {
   return {
     id: user.id,
     name: user.name,
