@@ -20,7 +20,7 @@ export class AuthController {
   @Post('register')
   @HttpCode(HttpStatus.CREATED)
   register(@Body() body: RegisterDto) {
-    return this.authService.register(body.name, body.email, body.password);
+    return this.authService.register(body.email, body.password, body.name);
   }
 
   @Post('login')
