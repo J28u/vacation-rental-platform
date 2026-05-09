@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { UnauthorizedException, BadRequestException } from '@nestjs/common';
 import { UsersService } from '../users/users.service';
 import { JwtService } from '@nestjs/jwt';
-import { UserProfileDto } from './dto/user-profile.dto';
+import { UserProfileDto } from '../users/dto/user-profile.dto';
 import { AuthResponseDto } from './dto/auth-response.dto';
 import { User } from '../generated/prisma/client';
 const bcrypt = require('bcrypt');
@@ -13,16 +13,6 @@ export class AuthService {
     private readonly usersService: UsersService,
     private readonly jwtService: JwtService,
   ) {}
-
-  private convertUserToProfile(user: User): UserProfileDto {
-    return {
-      id: user.id,
-      name: user.name,
-      email: user.email,
-      created_at: user.createdAt,
-      updated_at: user.updatedAt,
-    };
-  }
 
   async register(
     email: string,
@@ -55,9 +45,7 @@ export class AuthService {
     return { token };
   }
 
-  async getProfile(id: number): Promise<UserProfileDto> {
-    const user = await this.usersService.findOneById(id);
-    if (!user) throw new UnauthorizedException();
-    return this.convertUserToProfile(user);
+  getProfile(id: number) {
+    return this.usersService.getProfile(id);
   }
 }
