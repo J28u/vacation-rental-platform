@@ -2,9 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { UnauthorizedException, BadRequestException } from '@nestjs/common';
 import { UsersService } from '../users/users.service';
 import { JwtService } from '@nestjs/jwt';
-import { UserProfileDto } from '../users/dto/user-profile.dto';
 import { AuthResponseDto } from './dto/auth-response.dto';
-import { User } from '../generated/prisma/client';
 const bcrypt = require('bcrypt');
 
 @Injectable()

@@ -5,13 +5,27 @@ import {
   Body,
   HttpStatus,
   HttpCode,
-  Request,
+  Req,
   UseGuards,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { AuthGuard } from '@nestjs/passport';
+import type { AuthenticatedRequest } from '../common/interfaces/authenticated-request.interface';
+import {
+  ApiCreatedResponse,
+  ApiBearerAuth,
+  ApiOkResponse,
+} from '@nestjs/swagger';
+import { AuthResponseDto } from './dto/auth-response.dto';
+import { UserProfileDto } from 'src/users/dto/user-profile.dto';
+import {
+  ApiRegisterErrors,
+  ApiInvalidCredentials,
+  ApiInvalidFormat,
+  ApiUnauthorized,
+} from 'src/common/decorators/api-errors.decorator';
 
 @Controller('auth')
 export class AuthController {
@@ -19,20 +33,28 @@ export class AuthController {
 
   @Post('register')
   @HttpCode(HttpStatus.CREATED)
-  register(@Body() body: RegisterDto) {
-    return this.authService.register(body.email, body.password, body.name);
+  @ApiCreatedResponse({ description: 'Success', type: AuthResponseDto })
+  @ApiRegisterErrors()
+  register(@Body() dto: RegisterDto) {
+    return this.authService.register(dto.email, dto.password, dto.name);
   }
 
   @Post('login')
   @HttpCode(HttpStatus.OK)
-  login(@Body() body: LoginDto) {
-    return this.authService.login(body.email, body.password);
+  @ApiOkResponse({ description: 'Success', type: AuthResponseDto })
+  @ApiInvalidCredentials()
+  @ApiInvalidFormat()
+  login(@Body() dto: LoginDto) {
+    return this.authService.login(dto.email, dto.password);
   }
 
   @UseGuards(AuthGuard('jwt'))
   @Get('me')
   @HttpCode(HttpStatus.OK)
-  getProfile(@Request() req) {
+  @ApiOkResponse({ description: 'Success', type: UserProfileDto })
+  @ApiUnauthorized()
+  @ApiBearerAuth()
+  getProfile(@Req() req: AuthenticatedRequest) {
     return this.authService.getProfile(req.user.sub);
   }
 }

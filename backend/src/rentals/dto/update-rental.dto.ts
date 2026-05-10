@@ -1,24 +1,6 @@
-import { IsString, MinLength, IsNumber, IsOptional } from 'class-validator';
+import { CreateRentalDto } from './create-rental.dto';
+import { PartialType } from '@nestjs/swagger';
+import { AtLeastOneField } from 'src/common/validators/at-least-one-field.validator';
 
-export class UpdateRentalDto {
-  @IsOptional()
-  @IsString()
-  @MinLength(2)
-  name?: string;
-
-  @IsOptional()
-  @IsNumber()
-  surface?: number;
-
-  @IsOptional()
-  @IsNumber()
-  price?: number;
-
-  @IsOptional()
-  @IsString()
-  picture?: string;
-
-  @IsOptional()
-  @IsString()
-  description?: string;
-}
+@AtLeastOneField()
+export class UpdateRentalDto extends PartialType(CreateRentalDto) {}

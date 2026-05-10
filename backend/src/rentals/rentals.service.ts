@@ -1,14 +1,17 @@
 import {
   Injectable,
   Body,
-  BadRequestException,
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateRentalDto } from './dto/create-rental.dto';
-import { RentalResponseDto } from './dto/rental-response.dto';
+import {
+  RentalResponseDto,
+  RentalsResponseDto,
+} from './dto/rental-response.dto';
 import { UpdateRentalDto } from './dto/update-rental.dto';
+import { SuccessResponseDto } from 'src/common/dto/success-response.dto';
 
 @Injectable()
 export class RentalsService {
@@ -39,11 +42,11 @@ export class RentalsService {
       },
     });
 
-    if (!rental) throw new NotFoundException('Rental not found');
+    if (!rental) throw new NotFoundException('Rental not found.');
     return this.convertToRentalResponseDto(rental);
   }
 
-  async findAll(): Promise<{ rentals: RentalResponseDto[] }> {
+  async findAll(): Promise<RentalsResponseDto> {
     const rentals = await this.prisma.rental.findMany({
       include: {
         owner: true,
@@ -56,18 +59,17 @@ export class RentalsService {
   }
 
   async create(
-    @Body() body: CreateRentalDto,
+    @Body() dto: CreateRentalDto,
     ownerId: number,
-  ): Promise<{ message: string }> {
-    const rental = await this.prisma.rental.create({
+  ): Promise<SuccessResponseDto> {
+    await this.prisma.rental.create({
       data: {
-        ...body,
+        ...dto,
         owner: { connect: { id: ownerId } },
       },
     });
-    if (!rental) throw new BadRequestException('Validation error');
 
-    return { message: 'Rental created!' };
+    return { message: 'Rental created' };
   }
 
   async update(
@@ -79,15 +81,13 @@ export class RentalsService {
     if (rental.owner.id !== ownerId)
       throw new UnauthorizedException('Unauthorized');
     console.log(body);
-    const update = await this.prisma.rental.update({
+    await this.prisma.rental.update({
       where: { id },
       data: {
         ...body,
       },
     });
 
-    if (!update) throw new BadRequestException('Validation error');
-
-    return { message: 'Rental updated !' };
+    return { message: 'Rental updated' };
   }
 }

@@ -33,7 +33,7 @@ export class UsersService {
 
   async getProfile(id: number): Promise<UserProfileDto> {
     const user = await this.findOneById(id);
-    if (!user) throw new NotFoundException('User not found !');
+    if (!user) throw new NotFoundException('User not found');
     return this.convertUserToProfile(user);
   }
 }
