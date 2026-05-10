@@ -25,28 +25,6 @@ export function ApiInvalidCredentials() {
   );
 }
 
-export function ApiInvalidFormat() {
-  return applyDecorators(
-    ApiBadRequestResponse({
-      description: 'Bad request',
-      content: {
-        'application/json': {
-          schema: { $ref: getSchemaPath(ErrorResponseDto) },
-          example: {
-            message: [
-              'email must be an email',
-              'password must be longer than or equal to 6 characters',
-              'password must be a string',
-            ],
-            error: 'Bad Request',
-            statusCode: 400,
-          },
-        },
-      },
-    }),
-  );
-}
-
 export function ApiUnauthorized() {
   return applyDecorators(
     ApiUnauthorizedResponse({

@@ -23,8 +23,8 @@ import { UserProfileDto } from 'src/users/dto/user-profile.dto';
 import {
   ApiRegisterErrors,
   ApiInvalidCredentials,
-  ApiInvalidFormat,
   ApiUnauthorized,
+  ApiValidationError,
 } from 'src/common/decorators/api-errors.decorator';
 
 @Controller('auth')
@@ -43,7 +43,7 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   @ApiOkResponse({ description: 'Success', type: AuthResponseDto })
   @ApiInvalidCredentials()
-  @ApiInvalidFormat()
+  @ApiValidationError(['email must be an email'])
   login(@Body() dto: LoginDto) {
     return this.authService.login(dto.email, dto.password);
   }
