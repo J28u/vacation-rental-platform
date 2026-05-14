@@ -17,44 +17,48 @@ import {
   ApiCreatedResponse,
   ApiBearerAuth,
   ApiOkResponse,
+  ApiOperation,
 } from '@nestjs/swagger';
 import { AuthResponseDto } from './dto/auth-response.dto';
-import { UserProfileDto } from 'src/users/dto/user-profile.dto';
+import { UserProfileDto } from '../users/dto/user-profile.dto';
 import {
   ApiRegisterErrors,
   ApiInvalidCredentials,
   ApiUnauthorized,
   ApiValidationError,
-} from 'src/common/decorators/api-errors.decorator';
+} from '../common/decorators/api-errors.decorator';
 
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
-  @Post('register')
-  @HttpCode(HttpStatus.CREATED)
+  @ApiOperation({
+    summary: 'Register a new user account and retrieve a JWT token',
+  })
   @ApiCreatedResponse({ description: 'Success', type: AuthResponseDto })
   @ApiRegisterErrors()
+  @Post('register')
   register(@Body() dto: RegisterDto) {
     return this.authService.register(dto.email, dto.password, dto.name);
   }
 
-  @Post('login')
-  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Authenticate and retrieve a JWT token' })
   @ApiOkResponse({ description: 'Success', type: AuthResponseDto })
   @ApiInvalidCredentials()
   @ApiValidationError(['email must be an email'])
+  @Post('login')
+  @HttpCode(HttpStatus.OK)
   login(@Body() dto: LoginDto) {
     return this.authService.login(dto.email, dto.password);
   }
 
-  @UseGuards(AuthGuard('jwt'))
-  @Get('me')
-  @HttpCode(HttpStatus.OK)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: "Get the authenticated user's profile" })
   @ApiOkResponse({ description: 'Success', type: UserProfileDto })
   @ApiUnauthorized()
-  @ApiBearerAuth()
+  @UseGuards(AuthGuard('jwt'))
+  @Get('me')
   getProfile(@Req() req: AuthenticatedRequest) {
-    return this.authService.getProfile(req.user.sub);
+    return this.authService.findProfile(req.user.sub);
   }
 }

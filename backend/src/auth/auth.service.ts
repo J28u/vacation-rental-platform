@@ -43,7 +43,7 @@ export class AuthService {
     return { token };
   }
 
-  getProfile(id: number) {
-    return this.usersService.getProfile(id);
+  findProfile(id: number) {
+    return this.usersService.findProfile(id);
   }
 }
