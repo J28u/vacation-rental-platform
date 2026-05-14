@@ -18,3 +18,13 @@ export class OwnerDto {
 export class RentalsResponseDto {
   rentals!: RentalResponseDto[];
 }
+
+class RentalMessageDto {
+  message!: string;
+  author!: string;
+  created_at!: Date | null;
+}
+
+export class RentalMessagesResponseDto {
+  messages!: RentalMessageDto[];
+}

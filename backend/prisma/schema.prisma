@@ -11,16 +11,16 @@ datasource db {
 model Message {
   id        Int       @id @default(autoincrement())
   rentalId  Int       @map("rental_id")
-  userId    Int       @map("user_id")
+  authorId  Int       @map("user_id")
   message   String    @db.Text
   createdAt DateTime? @default(now()) @map("created_at")
   updatedAt DateTime? @updatedAt @map("updated_at")
 
-  rental Rental @relation(fields: [rentalId], references: [id], onDelete: Cascade)
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  rental   Rental @relation(fields: [rentalId], references: [id], onDelete: Cascade)
+  author   User   @relation(fields: [authorId], references: [id], onDelete: Cascade)
 
   @@index([rentalId], map: "idx_rental")
-  @@index([userId], map: "idx_user")
+  @@index([authorId], map: "idx_author")
   @@map("messages")
 }
 
