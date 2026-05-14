@@ -6,6 +6,8 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import RentalDetail from './pages/RentalDetail';
 import Profile from './pages/Profile';
+import AddRentalForm from './pages/AddRentalForm';
+import UpdateRentalForm from './pages/UpdateRentalForm';
 
 function App() {
   return (
@@ -36,6 +38,22 @@ function App() {
             element={
               <PrivateRoute>
                 <Profile />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/rentals/new"
+            element={
+              <PrivateRoute>
+                <AddRentalForm />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/rental/:id/update"
+            element={
+              <PrivateRoute>
+                <UpdateRentalForm />
               </PrivateRoute>
             }
           />
