@@ -13,7 +13,7 @@ export default function RentalCard({ rental }: RentalCardProps) {
     >
       <div className='relative h-48'>
         <img
-          src={rental.picture}
+          src={`${import.meta.env.VITE_API_URL}${rental.picture}`}
           alt={rental.name}
           className='w-full h-full object-cover'
         />
