@@ -1,32 +1,153 @@
-# ChâTop - Portail de Location Saisonnière
+# ChâTop - Vacation Rental Platform
 
-Application full-stack TypeScript pour mettre en relation locataires et propriétaires dans une zone touristique.
+A full-stack TypeScript application connecting tenants and property owners in a tourist area.
 
-## 📋 Contexte du projet
+![Vacation Rental Platform Demo](./screenshots/vacation_rental_platform_demo.gif)
 
-Ce repository contient le **front-end React** de l'application ChâTop ainsi que les **ressources nécessaires** pour développer le back-end NestJS.
+## 🎯 Project Overview
 
-Votre mission : **Implémenter l'API REST avec NestJS** qui remplacera l'API mockée fournie.
+A REST API built with NestJS, featuring:
 
-## 🚀 Démarrage rapide
+- Authentication routes
+- Full API routes (GET, PUT, POST) for the rentals, users, and messages domains
+- DTO validation (class-validator)
+- Swagger documentation
 
-### Prérequis
+## 🚀 Installation
 
-- **Node.js** 22 LTS ou supérieur
-- **npm** (inclus avec Node.js)
-- **MySQL** 8.0+ (ou MariaDB 10.5+)
-- **Mockoon** Desktop (pour simuler l'API durant le développement front-end)
+### Prerequisites
 
-### Installation
+- **Node.js** 22 LTS or higher
+- **npm** (included with Node.js)
+- **MySQL** 8.0+
 
-#### 1. Cloner le repository
+### 1. Clone the repository
 
 ```bash
-git clone <url-du-repo>
-cd p3-dfsjs-starter
+git clone https://github.com/J28u/vacation-rental-platform.git
+cd vacation-rental-platform
 ```
 
-#### 2. Installer et lancer le front-end React
+### 2. Create .env files for the frontend and backend
+
+Copy the provided example files and fill in your own values:
+
+```bash
+cp frontend/src/.env.example frontend/src/.env
+cp backend/src/.env.example backend/src/.env
+```
+
+The following environment variables are required in `backend/.env`:
+
+| Variable        | Description                        |
+| --------------- | ---------------------------------- |
+| `DATABASE_URL`  | Full MySQL connection string       |
+| `DATABASE_HOST` | Database host                      |
+| `DATABASE_PORT` | Database port                      |
+| `TOKEN_SECRET`  | Secret key used to sign JWT tokens |
+| `PORT`          | API port                           |
+
+### 3. Install backend dependencies
+
+```bash
+cd backend
+npm install
+```
+
+### 4. Create the MySQL database
+
+Create a new MySQL database named `chatop_db`:
+
+```sql
+CREATE DATABASE chatop_db;
+```
+
+Create a dedicated user:
+
+```sql
+CREATE USER <db_username>@<db_host> IDENTIFIED BY <db_password>;
+```
+
+Grant the necessary permissions:
+
+```sql
+GRANT SELECT, INSERT, UPDATE, DELETE ON chatop_db.* TO <db_username>@<db_host>;
+```
+
+Then update the following variables in `backend/.env`:
+
+```env
+DATABASE_URL = "mysql://<db_username>:<db_password>@<db_host>:<db_port>/chatop_db"
+DATABASE_HOST = "<db_host>"
+DATABASE_PORT = "<db_port>"
+```
+
+### 5. Initialize the database with Prisma
+
+Run the migration to create all tables from the Prisma schema:
+
+```bash
+cd backend
+npx prisma migrate dev --name init
+```
+
+The following tables will be created in your database:
+
+```sql
++------------+--------------+------+-----+-------------------+-----------------------------------------------+
+| Field      | Type         | Null | Key | Default           | Extra                                         |
++------------+--------------+------+-----+-------------------+-----------------------------------------------+
+| id         | int          | NO   | PRI | NULL              | auto_increment                                |
+| email      | varchar(255) | NO   | UNI | NULL              |                                               |
+| name       | varchar(255) | NO   |     | NULL              |                                               |
+| password   | varchar(255) | NO   |     | NULL              |                                               |
+| created_at | timestamp    | YES  |     | CURRENT_TIMESTAMP | DEFAULT_GENERATED                             |
+| updated_at | timestamp    | YES  |     | CURRENT_TIMESTAMP | DEFAULT_GENERATED on update CURRENT_TIMESTAMP |
++------------+--------------+------+-----+-------------------+-----------------------------------------------+
+
++------------+--------------+------+-----+-------------------+-----------------------------------------------+
+| Field      | Type         | Null | Key | Default           | Extra                                         |
++------------+--------------+------+-----+-------------------+-----------------------------------------------+
+| id         | int          | NO   | PRI | NULL              | auto_increment                                |
+| rental_id  | int          | NO   | MUL | NULL              |                                               |
+| user_id    | int          | NO   | MUL | NULL              |                                               |
+| message    | text         | NO   |     | NULL              |                                               |
+| created_at | timestamp    | YES  |     | CURRENT_TIMESTAMP | DEFAULT_GENERATED                             |
+| updated_at | timestamp    | YES  |     | CURRENT_TIMESTAMP | DEFAULT_GENERATED on update CURRENT_TIMESTAMP |
++------------+--------------+------+-----+-------------------+-----------------------------------------------+
+
++------------+--------------+------+-----+-------------------+-----------------------------------------------+
+| Field      | Type         | Null | Key | Default           | Extra                                         |
++------------+--------------+------+-----+-------------------+-----------------------------------------------+
+| id         | int          | NO   | PRI | NULL              | auto_increment                                |
+| name       | varchar(255) | NO   |     | NULL              |                                               |
+| surface    | decimal(10,2)| NO   |     | NULL              |                                               |
+| price      | decimal(10,2)| NO   |     | NULL              |                                               |
+| picture    | varchar(500) | YES  |     | NULL              |                                               |
+| description| text         | NO   |     | NULL              |                                               |
+| owner_id   | int          | NO   | MUL | NULL              |                                               |
+| created_at | timestamp    | YES  |     | CURRENT_TIMESTAMP | DEFAULT_GENERATED                             |
+| updated_at | timestamp    | YES  |     | CURRENT_TIMESTAMP | DEFAULT_GENERATED on update CURRENT_TIMESTAMP |
++------------+--------------+------+-----+-------------------+-----------------------------------------------+
+```
+
+Then generate the Prisma TypeScript client to interact with the database:
+
+```bash
+npx prisma generate
+```
+
+### 6. Start the API
+
+```bash
+cd backend
+npm run start
+```
+
+The API will be available at [http://localhost:3001](http://localhost:3001)  
+The Swagger documentation will be available at [http://localhost:3001/swagger](http://localhost:3001/swagger)
+
+### 7. Start the application
 
 ```bash
 cd frontend
@@ -34,200 +155,60 @@ npm install
 npm run dev
 ```
 
-L'application front-end sera accessible sur [http://localhost:5173](http://localhost:5173)
+The frontend application will be available at [http://localhost:5173](http://localhost:5173)
 
-#### 3. Configurer Mockoon
-
-1. Télécharger et installer Mockoon : https://mockoon.com/download/
-2. Ouvrir Mockoon
-3. Importer l'environnement : `File > Open environment`
-4. Sélectionner le fichier : `ressources/mockoon/chatop-api.json`
-5. Démarrer le serveur Mock (clic sur le bouton Play)
-
-L'API mockée sera accessible sur [http://localhost:3001](http://localhost:3001)
-
-#### 4. Créer la base de données MySQL
-
-```bash
-mysql -u root -p < ressources/sql/schema.sql
-```
-
-Ou via MySQL Workbench / DBeaver :
-1. Ouvrir le fichier `ressources/sql/schema.sql`
-2. Exécuter le script
-
-## 📂 Structure du projet
+## 📂 Project Structure
 
 ```
-p3-dfsjs-starter/
-├── frontend/                # Application React 19 (déjà complète)
+vacation-rental-platform/
+├── backend/                # NestJS 11 API
+│   ├── prisma/             # Database schema
 │   ├── src/
-│   │   ├── components/     # Composants réutilisables
-│   │   ├── pages/          # Pages de l'application
-│   │   ├── services/       # Services API (axios)
-│   │   ├── types/          # Types TypeScript
+│   │   ├── auth/           # /auth domain (dto, service, controller, module)
+│   │   ├── common/         # Shared decorators, DTOs and interfaces
+│   │   ├── messages/       # /messages domain (dto, service, controller, module)
+│   │   ├── prisma/         # TypeScript types
+│   │   ├── rentals/        # /rentals domain (dto, service, controller, module)
+│   │   ├── users/          # /users domain (dto, service, controller, module)
+│   │   ├── app.module.ts
+│   │   └── main.ts         # API entry point
+│   ├── package.json
+│   ├── prisma.config.ts
+│   └── tsconfig.json
+├── frontend/               # React 19 application
+│   ├── src/
+│   │   ├── components/     # Reusable components
+│   │   ├── pages/          # Application pages
+│   │   ├── services/       # API services (axios)
+│   │   ├── types/          # TypeScript types
 │   │   └── App.tsx
 │   ├── package.json
 │   └── vite.config.ts
-│
-├── ressources/
-│   ├── mockoon/           # Environnement Mockoon
-│   │   └── chatop-api.json
-│   └── sql/               # Schéma de base de données
-│       └── schema.sql
-│
 └── README.md
 ```
 
-## 🎯 Votre mission
+## 📡 API Documentation
 
-### Exercice 1 : Modélisation (3 étapes)
+Swagger UI: [http://localhost:3001/swagger](http://localhost:3001/swagger)
 
-1. **Installer l'environnement** :
-   - Installer Mockoon
-   - Lancer le front-end React
-   - Tester l'application avec Mockoon
+## 🔒 Key Considerations
 
-2. **Analyser l'API Mockoon** :
-   - Identifier toutes les routes de l'API
-   - Documenter : URL, méthode HTTP, paramètres, body, réponses
-   - Identifier les entités métier (User, Rental, Message)
+### Security
 
-3. **Initialiser la base de données** :
-   - Créer la base `chatop_db`
-   - Exécuter le schéma SQL fourni
-   - Configurer Prisma (à faire lors de l'implémentation)
-
-### Exercice 2 : Implémentation (3 étapes)
-
-Vous devrez créer un back-end NestJS de zéro avec :
-
-1. **Routes d'authentification** :
-   - `POST /api/auth/register` - Créer un compte
-   - `POST /api/auth/login` - Se connecter (retour JWT)
-   - `GET /api/auth/me` - Obtenir l'utilisateur connecté
-   - Chiffrement des mots de passe (bcrypt)
-   - Sécurisation JWT (toutes routes sauf register/login/swagger)
-
-2. **Toutes les routes API** :
-   - `GET /api/rentals` - Liste des locations
-   - `GET /api/rentals/:id` - Détail d'une location
-   - `POST /api/rentals` - Créer une location (avec upload image)
-   - `PUT /api/rentals/:id` - Modifier une location
-   - `GET /api/user/:id` - Obtenir un utilisateur
-   - `POST /api/messages` - Envoyer un message
-   - Architecture Controller/Service/Repository (Prisma)
-   - Validation des DTOs (class-validator)
-
-3. **Documentation et finalisation** :
-   - Documenter avec Swagger (@nestjs/swagger)
-   - Nettoyer le code
-   - README complet du back-end
-
-## 🔧 Technologies à utiliser
-
-### Front-end (déjà fourni)
-- **React 19** - UI framework
-- **TypeScript 5.7+** - Typage statique
-- **Vite 6** - Build tool
-- **TailwindCSS 3.4** - Styling
-- **TanStack Query** - Data fetching
-- **React Router 7** - Routing
-- **Axios** - HTTP client
-
-### Back-end (à implémenter par vous)
-- **NestJS 11** - Framework back-end
-- **TypeScript 5.7+** (Strict Mode)
-- **Prisma** - ORM pour MySQL
-- **Passport + JWT** - Authentification
-- **bcrypt** - Chiffrement mots de passe
-- **class-validator** - Validation DTOs
-- **@nestjs/swagger** - Documentation OpenAPI
-
-## 📚 Ressources
-
-### Documentation officielle
-- [NestJS Documentation](https://docs.nestjs.com/)
-- [Prisma Documentation](https://www.prisma.io/docs/)
-- [Passport JWT Strategy](https://docs.nestjs.com/security/authentication#jwt-functionality)
-- [Swagger/OpenAPI](https://docs.nestjs.com/openapi/introduction)
-
-### Outils
-- [Mockoon](https://mockoon.com/) - Mock API server
-- [MySQL Workbench](https://www.mysql.com/products/workbench/) - Database GUI
-- [Prisma Studio](https://www.prisma.io/studio) - Database browser
-- [Postman](https://www.postman.com/) - API testing
-
-## 🔒 Points d'attention
-
-### Sécurité
-- ✅ JWT obligatoire pour toutes les routes (sauf register, login, swagger)
-- ✅ Mots de passe chiffrés avec bcrypt (jamais en clair)
-- ✅ Variables d'environnement pour credentials BDD (`.env`)
-- ✅ Validation des entrées utilisateur (DTOs + class-validator)
+- ✅ JWT required for all routes (except register, login, and Swagger)
+- ✅ Passwords hashed with bcrypt (never stored in plain text)
+- ✅ Database credentials stored in environment variables (`.env`)
+- ✅ User input validation (DTOs + class-validator)
 
 ### Architecture
-- ✅ Architecture modulaire NestJS (Controller/Service/Repository)
-- ✅ Utilisation de Prisma (pas de SQL brut)
-- ✅ Séparation des responsabilités (SOLID)
-- ✅ Gestion des erreurs avec Exception Filters
 
-### Upload d'images
-- Les images des locations doivent être uploadées sur le serveur
-- L'URL de l'image est ensuite enregistrée en base de données
-- Utiliser `@UseInterceptors(FileInterceptor())` de NestJS
+- ✅ Modular NestJS architecture (Controller / Service / Module)
+- ✅ Prisma ORM (no raw SQL)
+- ✅ Separation of concerns (SOLID principles)
+- ✅ Error handling with Exception Filters
 
-## 📝 Commandes utiles
+### Image Upload
 
-### Front-end
-```bash
-cd frontend
-npm install          # Installer les dépendances
-npm run dev          # Lancer en développement
-npm run build        # Build production
-npm run lint         # Vérifier le code
-```
-
-### Back-end (à créer)
-```bash
-# Créer le projet NestJS
-nest new backend
-
-cd backend
-npm install @nestjs/passport passport passport-jwt
-npm install @nestjs/jwt bcrypt
-npm install @prisma/client
-npm install -D prisma
-npm install class-validator class-transformer
-npm install @nestjs/swagger
-
-# Initialiser Prisma
-npx prisma init
-
-# Générer le client Prisma (après configuration schema.prisma)
-npx prisma generate
-
-# Lancer le serveur
-npm run start:dev
-```
-
-## ⚠️ Important
-
-- **Ne PAS modifier le front-end** - Il est déjà complet et fonctionnel
-- Le front-end communique avec l'API sur `http://localhost:3001`
-- Tous les appels API passent par `/api/*`
-- Le front-end attend les mêmes réponses que Mockoon
-
-## 🎓 Bon courage !
-
-Ce projet vous permettra de maîtriser :
-- ✅ L'architecture modulaire avec NestJS
-- ✅ L'authentification JWT
-- ✅ La gestion d'une base de données relationnelle avec Prisma
-- ✅ La documentation d'API avec Swagger
-- ✅ Les bonnes pratiques TypeScript et SOLID
-
----
-
-**Version** : 1.0.0
-**Date** : Janvier 2026
+- Rental images are uploaded directly to the server
+- The image URL is then saved to the database
+- Uses `@UseInterceptors(FileInterceptor())` from NestJS
