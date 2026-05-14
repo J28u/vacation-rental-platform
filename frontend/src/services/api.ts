@@ -8,9 +8,11 @@ import type {
   Rental,
   UpdateRentalRequest,
   User,
+  Review,
 } from '../types/api';
+import { AxiosError } from 'axios';
 
-const API_BASE_URL = 'http://localhost:3001';
+const API_BASE_URL = import.meta.env.VITE_API_URL;
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -77,41 +79,77 @@ export const rentalsAPI = {
     formData.append('name', data.name);
     formData.append('surface', data.surface.toString());
     formData.append('price', data.price.toString());
-    formData.append('picture', data.picture);
+    formData.append('picture', data.picture[0]);
     formData.append('description', data.description);
-
-    const response = await api.post('/api/rentals', formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
-    });
-    return response.data;
+    try {
+      const response = await api.post('/api/rentals', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+      return response.data;
+    } catch (error: unknown) {
+      if (error instanceof AxiosError) {
+        throw new Error(error.response?.data.message);
+      }
+      throw new Error('Une erreur inattendue est survenue');
+    }
   },
 
-  update: async (
-    id: number,
-    data: UpdateRentalRequest,
-  ): Promise<{ message: string }> => {
+  getMessages: async (id: number): Promise<{ messages: Review[] }> => {
+    try {
+      const response = await api.get(`/api/rentals/${id}/messages`);
+      return response.data;
+    } catch (error: unknown) {
+      if (error instanceof AxiosError) {
+        throw new Error(error.response?.data.message);
+      }
+      throw new Error('Une erreur inattendue est survenue');
+    }
+  },
+
+  update: async ({
+    id,
+    data,
+  }: {
+    id: number;
+    data: UpdateRentalRequest;
+  }): Promise<{ message: string }> => {
     const formData = new FormData();
     if (data.name) formData.append('name', data.name);
     if (data.surface) formData.append('surface', data.surface.toString());
     if (data.price) formData.append('price', data.price.toString());
-    if (data.picture) formData.append('picture', data.picture);
+    if (data.picture && data.picture.length > 0)
+      formData.append('picture', data.picture[0]);
     if (data.description) formData.append('description', data.description);
 
-    const response = await api.put(`/api/rentals/${id}`, formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
-    });
-    return response.data;
+    try {
+      const response = await api.put(`/api/rentals/${id}`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+      return response.data;
+    } catch (error: unknown) {
+      if (error instanceof AxiosError) {
+        throw new Error(error.response?.data.message);
+      }
+      throw new Error('Une erreur inattendue est survenue');
+    }
   },
 };
 
 // Messages API
 export const messagesAPI = {
   send: async (data: Message): Promise<{ message: string }> => {
-    const response = await api.post('/api/messages', data);
-    return response.data;
+    try {
+      const response = await api.post('/api/messages', data);
+      return response.data;
+    } catch (error: unknown) {
+      if (error instanceof AxiosError) {
+        throw new Error(error.response?.data.message);
+      }
+      throw new Error('Une erreur inattendue est survenue');
+    }
   },
 };

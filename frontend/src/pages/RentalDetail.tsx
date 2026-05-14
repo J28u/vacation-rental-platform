@@ -1,22 +1,36 @@
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { messagesAPI, rentalsAPI } from '../services/api';
+import { ReviewCard } from '../components/ReviewCard';
+import { Review } from '../types/api';
+import { Link } from 'react-router-dom';
 
 export default function RentalDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [message, setMessage] = useState('');
   const [sendingMessage, setSendingMessage] = useState(false);
+  const queryClient = useQueryClient();
 
   const {
     data: rental,
-    isLoading,
-    error,
+    isLoading: isLoadingRental,
+    error: rentalError,
   } = useQuery({
-    queryKey: ['rental', id],
+    queryKey: ['rentals', id],
     queryFn: () => rentalsAPI.getById(Number(id)),
     enabled: !!id,
+  });
+
+  const {
+    data: reviews,
+    isLoading: isLoadingReviews,
+    error: reviewsError,
+  } = useQuery({
+    queryKey: ['reviews', Number(id)],
+    queryFn: () => rentalsAPI.getMessages(Number(id)),
+    enabled: !!rental,
   });
 
   const handleSendMessage = async (e: React.FormEvent) => {
@@ -27,11 +41,11 @@ export default function RentalDetail() {
     try {
       await messagesAPI.send({
         rental_id: rental.id,
-        user_id: rental.owner.id,
         message: message.trim(),
       });
       setMessage('');
       alert('Message envoyé avec succès !');
+      queryClient.invalidateQueries({ queryKey: ['reviews', rental.id] });
     } catch (err) {
       alert("Erreur lors de l'envoi du message");
     } finally {
@@ -39,7 +53,7 @@ export default function RentalDetail() {
     }
   };
 
-  if (isLoading) {
+  if (isLoadingRental || isLoadingReviews) {
     return (
       <div className='flex justify-center items-center min-h-screen'>
         <p className='text-xl text-gray-600'>Chargement...</p>
@@ -47,7 +61,7 @@ export default function RentalDetail() {
     );
   }
 
-  if (error || !rental) {
+  if (rentalError || reviewsError || !rental) {
     return (
       <div className='flex flex-col justify-center items-center min-h-screen'>
         <p className='text-xl text-red-600 mb-4'>Location introuvable</p>
@@ -63,17 +77,24 @@ export default function RentalDetail() {
 
   return (
     <div className='container mx-auto px-4 py-8'>
-      <button
-        onClick={() => navigate('/')}
-        className='mb-6 text-primary hover:underline flex items-center gap-2'
-      >
-        ← Retour
-      </button>
-
+      <div className='mb-8 flex justify-between items-center'>
+        <button
+          onClick={() => navigate('/')}
+          className='text-primary hover:underline flex items-center gap-2'
+        >
+          ← Retour
+        </button>
+        <Link
+          to={`/rental/${rental.id}/update`}
+          className='bg-primary text-white px-6 py-2 rounded-lg hover:bg-primary/90 transition-colors'
+        >
+          Modifier la location
+        </Link>
+      </div>
       <div className='bg-white rounded-lg shadow-lg overflow-hidden'>
         <div className='relative h-96'>
           <img
-            src={rental.picture}
+            src={`${import.meta.env.VITE_API_URL}${rental.picture}`}
             alt={rental.name}
             className='w-full h-full object-cover'
           />
@@ -140,6 +161,20 @@ export default function RentalDetail() {
                 {sendingMessage ? 'Envoi...' : 'Envoyer le message'}
               </button>
             </form>
+          </div>
+
+          <div className='mt-8 border-t pt-6'>
+            <h2 className='text-xl font-bold text-gray-900 mb-3'>Avis</h2>
+            {reviews?.messages.map((review: Review) => {
+              return (
+                <ReviewCard
+                  key={`${review.created_at}_${review.author}`}
+                  message={review.message}
+                  author={review.author}
+                  created_at={review.created_at}
+                />
+              );
+            })}
           </div>
         </div>
       </div>

@@ -20,7 +20,6 @@ export interface Rental {
 
 export interface Message {
   rental_id: number;
-  user_id: number;
   message: string;
 }
 
@@ -43,14 +42,14 @@ export interface CreateRentalRequest {
   name: string;
   surface: number;
   price: number;
-  picture: File;
+  picture: FileList;
   description: string;
 }
 
-export interface UpdateRentalRequest {
-  name?: string;
-  surface?: number;
-  price?: number;
-  picture?: File;
-  description?: string;
+export type UpdateRentalRequest = Partial<CreateRentalRequest>;
+
+export interface Review {
+  message: string;
+  author: string;
+  created_at: string;
 }
