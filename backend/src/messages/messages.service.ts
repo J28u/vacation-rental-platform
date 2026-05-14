@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { SuccessResponseDto } from 'src/common/dto/success-response.dto';
-import { RentalsService } from 'src/rentals/rentals.service';
+import { SuccessResponseDto } from '../common/dto/success-response.dto';
+import { RentalsService } from '../rentals/rentals.service';
 
 @Injectable()
 export class MessagesService {
@@ -11,7 +11,7 @@ export class MessagesService {
   ) {}
 
   async create(
-    userId: number,
+    authorId: number,
     rentalId: number,
     message: string,
   ): Promise<SuccessResponseDto> {
@@ -20,10 +20,10 @@ export class MessagesService {
       data: {
         message,
         rentalId,
-        userId,
+        authorId,
       },
     });
 
-    return { message: 'Message sent' };
+    return { message: 'Message sent!' };
   }
 }
