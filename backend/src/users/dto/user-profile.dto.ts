@@ -1,7 +1,7 @@
 export class UserProfileDto {
-  declare id: number;
-  declare name: string;
-  declare email: string;
-  declare created_at: Date | null;
-  declare updated_at: Date | null;
+  id!: number;
+  name!: string;
+  email!: string;
+  created_at!: Date | null;
+  updated_at!: Date | null;
 }

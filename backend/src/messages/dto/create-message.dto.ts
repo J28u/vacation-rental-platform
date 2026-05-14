@@ -4,7 +4,7 @@ import { ApiProperty } from '@nestjs/swagger';
 export class CreateMessageDto {
   @ApiProperty({ example: 1 })
   @IsInt()
-  declare rental_id: number;
+  rental_id!: number;
 
   @ApiProperty({
     example:
@@ -12,5 +12,5 @@ export class CreateMessageDto {
   })
   @IsString()
   @MinLength(2)
-  declare message: string;
+  message!: string;
 }

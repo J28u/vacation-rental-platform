@@ -14,10 +14,10 @@ export class RegisterDto {
 
   @IsEmail()
   @ApiProperty({ example: 'donatello-tmnt@gmail.com' })
-  declare email: string;
+  email!: string;
 
   @IsString()
   @IsStrongPassword()
   @ApiProperty({ example: "GfyTui0ç6'$42;:1_*" })
-  declare password: string;
+  password!: string;
 }
