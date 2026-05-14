@@ -4,14 +4,22 @@ import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
 import { ErrorResponseDto } from './common/dto/error-response.dto';
 import { SuccessResponseDto } from './common/dto/success-response.dto';
+import { NestExpressApplication } from '@nestjs/platform-express';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create<NestExpressApplication>(AppModule);
 
   app.setGlobalPrefix('api');
   app.useGlobalPipes(
-    new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }),
+    new ValidationPipe({
+      whitelist: true,
+      forbidNonWhitelisted: true,
+      transform: true,
+    }),
   );
+
+  app.enableCors({ origin: process.env.FRONTEND_DOMAIN });
+  app.useStaticAssets('uploads', { prefix: '/uploads' });
 
   const config = new DocumentBuilder()
     .setTitle('ChaTop API')
