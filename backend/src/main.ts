@@ -5,11 +5,13 @@ import { ValidationPipe } from '@nestjs/common';
 import { ErrorResponseDto } from './common/dto/error-response.dto';
 import { SuccessResponseDto } from './common/dto/success-response.dto';
 import { NestExpressApplication } from '@nestjs/platform-express';
+import { GlobalExceptionFilter } from './common/filters/http-exception.filter';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
 
   app.setGlobalPrefix('api');
+  app.useGlobalFilters(new GlobalExceptionFilter());
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
